@@ -1,0 +1,14 @@
+name: volcengine_mem0
+version: 1.0.0
+description: "Volcengine Mem0 -- hosted Mem0 service with server-side fact extraction, semantic search, and automatic deduplication."
+
+pip_dependencies:
+  - mem0ai
+
+requires_env:
+  - name: VOLCENGINE_MEM0_API_KEY
+    description: "Volcengine Mem0 API key"
+    url: "https://console.volcengine.com/mem0"
+    secret: true
+  - name: VOLCENGINE_MEM0_HOST
+    description: "Volcengine Mem0 connection address (e.g. https://your-host:8000)"
