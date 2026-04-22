@@ -76,7 +76,8 @@ PROFILE_SCHEMA = {
     "name": "volcmem0_profile",
     "description": (
         "Retrieve all stored memories about the user — preferences, facts, "
-        "project context. Fast, no reranking. Use at conversation start."
+        "project context. Returns memory IDs and content. Fast, no reranking. "
+        "Use at conversation start."
     ),
     "parameters": {"type": "object", "properties": {}, "required": []},
 }
@@ -84,7 +85,7 @@ PROFILE_SCHEMA = {
 SEARCH_SCHEMA = {
     "name": "volcmem0_search",
     "description": (
-        "Search memories by meaning. Returns relevant facts ranked by similarity. "
+        "Search memories by meaning. Returns relevant facts with IDs ranked by similarity. "
         "Set rerank=true for higher accuracy on important queries."
     ),
     "parameters": {
@@ -350,8 +351,8 @@ class VolcengineMem0MemoryProvider(MemoryProvider):
                 self._record_success()
                 if not memories:
                     return json.dumps({"result": "No memories stored yet."})
-                lines = [m.get("memory", "") for m in memories if m.get("memory")]
-                return json.dumps({"result": "\n".join(lines), "count": len(lines)})
+                items = [{"id": m.get("id", ""), "memory": m.get("memory", "")} for m in memories if m.get("memory")]
+                return json.dumps({"results": items, "count": len(items)})
             except Exception as e:
                 self._record_failure()
                 return tool_error(f"Failed to fetch profile: {e}")
@@ -372,7 +373,7 @@ class VolcengineMem0MemoryProvider(MemoryProvider):
                 self._record_success()
                 if not results:
                     return json.dumps({"result": "No relevant memories found."})
-                items = [{"memory": r.get("memory", ""), "score": r.get("score", 0)} for r in results]
+                items = [{"id": r.get("id", ""), "memory": r.get("memory", ""), "score": r.get("score", 0)} for r in results]
                 return json.dumps({"results": items, "count": len(items)})
             except Exception as e:
                 self._record_failure()
