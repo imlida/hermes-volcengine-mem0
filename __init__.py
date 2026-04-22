@@ -113,6 +113,21 @@ CONCLUDE_SCHEMA = {
     },
 }
 
+DELETE_SCHEMA = {
+    "name": "volcmem0_delete",
+    "description": (
+        "Delete a specific memory by its ID. Use when the user asks to remove "
+        "or forget a previously stored fact."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "memory_id": {"type": "string", "description": "The ID of the memory to delete."},
+        },
+        "required": ["memory_id"],
+    },
+}
+
 
 # ---------------------------------------------------------------------------
 # MemoryProvider implementation
@@ -316,7 +331,7 @@ class VolcengineMem0MemoryProvider(MemoryProvider):
         self._sync_thread.start()
 
     def get_tool_schemas(self) -> List[Dict[str, Any]]:
-        return [PROFILE_SCHEMA, SEARCH_SCHEMA, CONCLUDE_SCHEMA]
+        return [PROFILE_SCHEMA, SEARCH_SCHEMA, CONCLUDE_SCHEMA, DELETE_SCHEMA]
 
     def handle_tool_call(self, tool_name: str, args: dict, **kwargs) -> str:
         if self._is_breaker_open():
@@ -378,6 +393,18 @@ class VolcengineMem0MemoryProvider(MemoryProvider):
             except Exception as e:
                 self._record_failure()
                 return tool_error(f"Failed to store: {e}")
+
+        elif tool_name == "volcmem0_delete":
+            memory_id = args.get("memory_id", "")
+            if not memory_id:
+                return tool_error("Missing required parameter: memory_id")
+            try:
+                client.delete(memory_id=memory_id)
+                self._record_success()
+                return json.dumps({"result": "Memory deleted."})
+            except Exception as e:
+                self._record_failure()
+                return tool_error(f"Failed to delete memory: {e}")
 
         return tool_error(f"Unknown tool: {tool_name}")
 
